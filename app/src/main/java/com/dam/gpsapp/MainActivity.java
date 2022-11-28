@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
@@ -26,10 +28,14 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.time.Instant;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_FINE_LOCATION = 99;
     private static final int INTERVALO_NORMAL = 7;
     private static final int INTERVALO_RAPIDO = 4;
+    private static final int PERMISSIONS_FINE_LOCATION_S = 98;
 
     TextView tv_lat, tv_lon, tv_altitude, tv_accuracy, tv_speed, tv_sensor, tv_updates, tv_address;
 
@@ -38,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
     ListView listLocation;
 
-    boolean updateOn = false;
 
     LocationRequest locationRequest;
 
@@ -46,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
 
     // google api for location services
     FusedLocationProviderClient fusedLocationProviderClient;
+
+    //Databases
+    DbHelper dbHelper;
+    SQLiteDatabase db;
 
 
     @Override
@@ -60,9 +69,10 @@ public class MainActivity extends AppCompatActivity {
         tv_speed = findViewById(R.id.tv_speed);
         tv_sensor = findViewById(R.id.tv_sensor);
         tv_updates = findViewById(R.id.tv_updates);
-        tv_address = findViewById(R.id.tv_address);
 
         listLocation = findViewById(R.id.listLocation);
+
+        listLocation.setAdapter();
 
 
         tv_updates.setText("La localizacion NO esta siendo actualizada");
@@ -71,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         tv_altitude.setText("No hay seguimiento GPS");
         tv_accuracy.setText("No hay seguimiento GPS");
         tv_speed.setText("No hay seguimiento GPS");
-        tv_sensor.setText("No hay seguimiento GPS");
         tv_speed.setText("No hay seguimiento GPS");
 
 
@@ -126,15 +135,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        updateGPS();
-
         // Crear base de datos sqlite
-        DbHelper dbHelper = new DbHelper(MainActivity.this);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        dbHelper = new DbHelper(MainActivity.this);
+        db = dbHelper.getWritableDatabase();
         if (db != null) {
-            Toast.makeText(MainActivity.this, "DB CREADA", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "DB CREADA", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(MainActivity.this, "FALLO AL CREAR DB", Toast.LENGTH_LONG).show();
+            finish();
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(MainActivity.this, "La aplicación tiene permisos GPS", Toast.LENGTH_SHORT).show();
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION_S);
+            }
         }
 
     }
@@ -147,11 +164,12 @@ public class MainActivity extends AppCompatActivity {
         tv_altitude.setText("No hay seguimiento GPS");
         tv_accuracy.setText("No hay seguimiento GPS");
         tv_speed.setText("No hay seguimiento GPS");
-        tv_sensor.setText("No hay seguimiento GPS");
+        tv_sensor.setText("Torres movil + Wifi");
         tv_speed.setText("No hay seguimiento GPS");
 
     }
 
+    @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
         tv_updates.setText("La localizacion esta siendo actualizada");
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallBack, null);
@@ -167,7 +185,16 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     updateGPS();
                 } else {
-                    Toast.makeText(this, "Se necesitan permisos para que la app funcione correctamente", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Se necesitan permisos para que la app funcione correctamente", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+                break;
+            case PERMISSIONS_FINE_LOCATION_S:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(this, "Permisos obtenidos. La app puede funcionar con normalidad", Toast.LENGTH_LONG).show();
+                    fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
+                } else {
+                    Toast.makeText(this, "Se necesitan permisos para que la app funcione correctamente", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 break;
@@ -176,10 +203,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateGPS() {
-        // get permissions from the user to track gps
-        // get current location
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -212,6 +237,19 @@ public class MainActivity extends AppCompatActivity {
         } else {
             tv_speed.setText("No disponible");
         }
+
+        ContentValues values = new ContentValues();
+        values.put("fecha", Date.from(Instant.now()).toString());
+        values.put("latitud", String.valueOf(location.getLatitude()));
+        values.put("longitud", String.valueOf(location.getLongitude()));
+
+        // Insert the new row, returning the primary key value of the new row
+        long newRowId = db.insert(DbHelper.TABLE_LOCATION, null, values);
+        Log.d("db", String.valueOf(newRowId));
+        Log.d("db", values.toString());
+
+
+
 
     }
 
