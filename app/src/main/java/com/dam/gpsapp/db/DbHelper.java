@@ -19,6 +19,8 @@ public class DbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        sqLiteDatabase.execSQL("DELETE FROM "+ TABLE_LOCATION);
+        sqLiteDatabase.execSQL("DELETE FROM sqlite_sequence WHERE name='" + TABLE_LOCATION+"'");
         sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_LOCATION + " (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "fecha TEXT NOT NULL," +

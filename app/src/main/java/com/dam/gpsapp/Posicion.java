@@ -1,14 +1,14 @@
 package com.dam.gpsapp;
 
-public class DatosLista {
+public class Posicion {
     private String fecha;
     private String latitud;
     private String longitud;
 
-    public DatosLista() {
+    public Posicion() {
     }
 
-    public DatosLista(String fecha, String latitud, String longitud) {
+    public Posicion(String fecha, String latitud, String longitud) {
         this.fecha = fecha;
         this.latitud = latitud;
         this.longitud = longitud;

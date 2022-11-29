@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
@@ -14,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -42,7 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     Switch sw_locationupdates, sw_gps;
 
-    ListView listLocation;
+    Button b_listaDb;
+
 
 
     LocationRequest locationRequest;
@@ -70,9 +73,8 @@ public class MainActivity extends AppCompatActivity {
         tv_sensor = findViewById(R.id.tv_sensor);
         tv_updates = findViewById(R.id.tv_updates);
 
-        listLocation = findViewById(R.id.listLocation);
 
-        listLocation.setAdapter();
+        // listLocation.setAdapter();
 
 
         tv_updates.setText("La localizacion NO esta siendo actualizada");
@@ -86,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
 
         sw_locationupdates = findViewById(R.id.sw_locationsupdates);
         sw_gps = findViewById(R.id.sw_gps);
+
+        b_listaDb = findViewById(R.id.b_listaDb);
 
         // set props of location requrest
         locationRequest = new LocationRequest();
@@ -139,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DbHelper(MainActivity.this);
         db = dbHelper.getWritableDatabase();
         if (db != null) {
+            db.execSQL("DELETE FROM " + DbHelper.TABLE_LOCATION + ";");
             Toast.makeText(MainActivity.this, "DB CREADA", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(MainActivity.this, "FALLO AL CREAR DB", Toast.LENGTH_LONG).show();
@@ -153,6 +158,14 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION_S);
             }
         }
+
+        b_listaDb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, mostrarListaDb.class);
+                startActivity(i);
+            }
+        });
 
     }
 
