@@ -29,9 +29,9 @@ public class mostrarListaDb extends AppCompatActivity {
         ArrayList<String> items = new ArrayList<>();
 
         for (int i = 0; i < posiciones.size(); i++){
-            items.add(posiciones.get(0).getFecha() + " | " +
-                    posiciones.get(0).getLatitud() + " | " +
-                    posiciones.get(0).getLongitud());
+            items.add(posiciones.get(i).getFecha() + " | " +
+                    posiciones.get(i).getLatitud() + " | " +
+                    posiciones.get(i).getLongitud());
         }
 
         ArrayAdapter<String> itemsAdapter =
@@ -42,7 +42,7 @@ public class mostrarListaDb extends AppCompatActivity {
         listView.setAdapter(itemsAdapter);
 
 
-        
+
 
         Log.d("db", obtenerPosiciones().get(0).getFecha());
         Log.d("db", obtenerPosiciones().get(0).getLatitud());
