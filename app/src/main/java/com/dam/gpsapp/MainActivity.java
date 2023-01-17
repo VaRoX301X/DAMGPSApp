@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dam.gpsapp.db.DbHelper;
+import com.dam.gpsapp.servicios.pruebaIntentService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
@@ -96,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
         locationRequest.setInterval(1000*INTERVALO_NORMAL);
         locationRequest.setFastestInterval(1000*INTERVALO_RAPIDO);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        Intent intent = new Intent(MainActivity.this, pruebaIntentService.class);
+        startService(intent);
 
         locationCallBack = new LocationCallback() {
             @Override
@@ -265,5 +269,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
 
 }
